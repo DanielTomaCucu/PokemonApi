@@ -1,7 +1,9 @@
 package com.example.pokemoin.service.impl;
 
+import com.example.pokemoin.dto.PokemonDto;
 import com.example.pokemoin.dto.ReviewDto;
 import com.example.pokemoin.exceptions.PokemonNotFoundEx;
+import com.example.pokemoin.exceptions.ReviewNotFoundEx;
 import com.example.pokemoin.models.Pokemon;
 import com.example.pokemoin.models.Review;
 import com.example.pokemoin.repository.PokemonRepo;
@@ -38,6 +40,45 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewDto> getReviewsByPokemonId(int id) {
         List<Review> reviews= reviewRepo.findByPokemonId(id);
         return  reviews.stream().map(review -> mapToDto(review)).collect(Collectors.toList());
+    }
+
+    @Override
+    public ReviewDto getReviewById(int reviewId, int pokemonId) {
+       Pokemon pokemon = pokemonRepo.findById(pokemonId).orElseThrow(()-> new PokemonNotFoundEx("Pokemon with review not found"));
+
+       Review review = reviewRepo.findById(reviewId).orElseThrow(()-> new ReviewNotFoundEx("REview not found"));
+
+       if(review.getPokemon().getId() != pokemon.getId() ){
+           throw new ReviewNotFoundEx("This review do not belong to this pokemon");
+       }
+       return mapToDto(review);
+
+    }
+
+    @Override
+    public ReviewDto updateReview(int pokemonId, int reviewId, ReviewDto reviewDto) {
+        Pokemon pokemon = pokemonRepo.findById(pokemonId).orElseThrow(()-> new PokemonNotFoundEx("Pokemon not found"));
+        Review review= reviewRepo.findById(reviewId).orElseThrow(()-> new ReviewNotFoundEx("Review not found"));
+
+        if(review.getPokemon().getId() != pokemon.getId()){
+            throw  new ReviewNotFoundEx("Review not found");
+        }
+        review.setTitle(reviewDto.getTitle());
+        review.setContent(reviewDto.getContent());
+        review.setStars(reviewDto.getStars());
+        Review updateReview = reviewRepo.save(review);
+        return mapToDto(updateReview);
+    }
+
+    @Override
+    public void deleteReview(int pokemonId, int reviewId) {
+        Pokemon pokemon= pokemonRepo.findById(pokemonId).orElseThrow(() -> new PokemonNotFoundEx("Pokemon not found"));
+        Review review = reviewRepo.findById(reviewId).orElseThrow(()-> new ReviewNotFoundEx("Review not found"));
+
+        if(review.getPokemon().getId() != pokemon.getId()){
+            throw  new ReviewNotFoundEx("Review not found");
+        }
+        reviewRepo.delete(review);
     }
 
 
