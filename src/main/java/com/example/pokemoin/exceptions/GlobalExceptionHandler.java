@@ -19,4 +19,13 @@ public class GlobalExceptionHandler {
         errorObject.setTimestamp(new Date());
         return  new ResponseEntity<ErrorObject>(errorObject, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(ReviewNotFoundEx.class)
+    public ResponseEntity<ErrorObject> handleRevireNotFoundException(PokemonNotFoundEx ex, WebRequest request){
+        ErrorObject errorObject = new ErrorObject();
+        errorObject.setTimestamp(new Date());
+        errorObject.setMessage(ex.getMessage());
+        errorObject.setStatusCode(HttpStatus.NOT_FOUND.value());
+        return  new ResponseEntity<ErrorObject>(errorObject, HttpStatus.NOT_FOUND);
+    }
 }
